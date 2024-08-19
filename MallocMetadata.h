@@ -1,6 +1,5 @@
 #include <stddef.h>
 
-
 class MallocMetadata {
     private:
         size_t m_size;
@@ -19,11 +18,13 @@ class MallocMetadata {
         void setPrev(MallocMetadata* prev);
         int getOrder(size_t realBlockSize);
 
+
         MallocMetadata(size_t size, MallocMetadata* prev);
         ~MallocMetadata() = default;
 };
 
+MallocMetadata* getLastMetadata(MallocMetadata* first);
 
-MallocMetadata* getLastMetadata(MallocMetadata* current);
+MallocMetadata* getFirstMetadataBySize(MallocMetadata* first, size_t size);
 
-MallocMetadata* getLastMetadataBySize(MallocMetadata* current, size_t size);
+MallocMetadata* getBestFitMetadata(MallocMetadata* first, size_t size);

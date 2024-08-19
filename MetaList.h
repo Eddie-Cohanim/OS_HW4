@@ -4,7 +4,7 @@
 
 class MetaList {
     private:
-    MallocMetadata* m_list;
+    MallocMetadata* m_list [MAX_ORDER];
     
     public:
         MetaList();

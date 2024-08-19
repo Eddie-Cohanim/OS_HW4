@@ -128,6 +128,7 @@ void* scalloc(size_t num, size_t size){
         return NULL;
     }
 
+    // Set all bytes to 0
     memset(ptr, 0, total_size);
 
     return ptr;
@@ -140,7 +141,7 @@ void sfree(void* p){
     if(p == NULL){
         return;
     }
-    MallocMetadata* Metadata = (MallocMetadata*)((char *)p - _size_meta_data());
+    MallocMetadata* Metadata = (MallocMetadata*)(((char *)p) - (_size_meta_data()));
     Metadata->setFree(true);
 }
 
@@ -148,7 +149,7 @@ void sfree(void* p){
 
 
 void* srealloc(void* oldp, size_t size){
-    if(size == 0 || size > MAX_SIZE){
+    if(size == 0 || size >= MAX_SIZE){/////////////////////////////// the tests think its equal or bigger but i think thats a mistake
         return NULL;
     }
     if(oldp == NULL){
