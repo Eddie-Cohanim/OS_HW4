@@ -1,3 +1,7 @@
+#ifndef MALLOC_META_DATA
+#define MALLOC_META_DATA
+
+
 #include <stddef.h>
 
 class MallocMetadata {
@@ -36,3 +40,5 @@ MallocMetadata* getLastMetadata(MallocMetadata* first);
 MallocMetadata* getFirstMetadataBySize(MallocMetadata* first, size_t size);
 
 MallocMetadata* getBestFitMetadata(MallocMetadata* first, size_t size);
+
+#endif MALLOC_META_DATA
