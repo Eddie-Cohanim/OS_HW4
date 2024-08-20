@@ -9,24 +9,28 @@ MetaList::MetaList(){
 
 
 
-void MetaList::addBlock(MallocMetadata* Block){
-    size_t blockSize = Block->getSize();
+void MetaList::addBlock(MallocMetadata* block){
+    size_t blockSize = block->getSize();
     size_t realBlockSize = blockSize;
-    int order = Block->getOrder(realBlockSize);
+    int order = block->getOrder(realBlockSize);
     
     MallocMetadata* lastMetadata = getLastMetadata(m_list[order]);
     if(lastMetadata == NULL){
-        m_list[order] = Block;
-        Block->setPrev(NULL);
+        m_list[order] = block;
+        block->setPrev(NULL);
+        block->setNext(NULL);//not sure if we need this
         return;
     }
     else{
-        lastMetadata->setNext(Block);
-        Block->setPrev(lastMetadata);
+        lastMetadata->setNext(block);
+        block->setPrev(lastMetadata);
+        block->setNext(NULL);//not sure if we need this
     } 
 
-    Block->setNext(NULL);
-    Block->setFree(false);
+    block->setNext(NULL);
+    //block->setFree(false);//why?
+    block->setFree(false);
+
 }
 
 
@@ -52,6 +56,13 @@ MallocMetadata* MetaList::splitBlock(MallocMetadata* block, size_t requestedSize
     addBlock(buddy);
 }
 
-MallocMetadata* getBuddy(MallocMetadata* block){
+MallocMetadata* MetaList::getBuddy(MallocMetadata* block){
 
+}
+
+void MetaList::mergeBuddyBlocks(MallocMetadata* block){
+    if(block->getBuddy()->getFree()){
+        //merge
+        //mergeBuddyBlocks(merged block)
+    }
 }

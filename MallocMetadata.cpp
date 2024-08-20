@@ -1,6 +1,6 @@
 #include "MallocMetadata.h"
 
-MallocMetadata::MallocMetadata(size_t size, MallocMetadata* prev): m_size(size), m_isFree(false), m_next(nullptr), m_prev(prev){
+MallocMetadata::MallocMetadata(size_t size, MallocMetadata* prev): m_size(size), m_isFree(false), m_next(nullptr), m_prev(prev), m_buddy(NULL){
 
 }
 
@@ -36,6 +36,14 @@ MallocMetadata* MallocMetadata::getPrev(){
 void MallocMetadata::setPrev(MallocMetadata* prev)
 {
     m_prev = prev;
+}
+
+MallocMetadata* MallocMetadata::getBuddy(){
+    return m_buddy;
+}
+
+void MallocMetadata::setBuddy(MallocMetadata* buddy){
+    m_buddy = buddy;
 }
 
 

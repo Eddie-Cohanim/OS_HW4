@@ -6,16 +6,24 @@ class MallocMetadata {
         bool m_isFree;
         MallocMetadata* m_next;
         MallocMetadata* m_prev;
+        MallocMetadata* m_buddy;
     
     public:
         size_t getSize();
         void setSize(size_t size);
+
         bool getFree();
         void setFree(bool free);
+
         MallocMetadata* getNext();
         void setNext(MallocMetadata* next);
+
         MallocMetadata* getPrev();
         void setPrev(MallocMetadata* prev);
+
+        MallocMetadata* getBuddy();
+        void setBuddy(MallocMetadata* buddy);
+
         int getOrder(size_t realBlockSize);
 
 
