@@ -2,12 +2,15 @@
 #include <string.h>
 #include <stdio.h>
 #include "MallocMetadata.h"
+#include "MetaList.h"
 
 
 
 #define MAX_SIZE 100000000
 
 MallocMetadata* firstMetadata = NULL;
+MetaList* metaDataList = NULL;
+
 
 
 /*****************************STATS METHODS******************************/
@@ -76,6 +79,41 @@ void* smalloc(size_t size){
     if(size == 0 || size > MAX_SIZE) {
         return NULL;
     }
+
+    if(metaDataList == NULL){
+        size_t sizeOfArray = sizeof(MallocMetadata*) * (MAX_ORDER + 1);
+        void* listToAllocate = (MetaList*)sbrk(sizeOfArray);
+        if(listToAllocate == (void*) -1){
+            return;
+        }
+        ((MetaList*) listToAllocate)->makeArrayNull();
+        metaDataList = (MetaList*) listToAllocate;
+        metaDataList->initialize(sizeOfArray);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     
     if(firstMetadata == NULL){

@@ -8,15 +8,19 @@
 
 class MetaList {
     private:
-    MallocMetadata* m_list [MAX_ORDER + 1];//cause you have both order 0 and order 10
+        MallocMetadata* m_list [MAX_ORDER + 1];//cause you have both order 0 and order 10
     
     public:
         MetaList();
+        MallocMetadata** getList();
+        void makeArrayNull();
 
-        void addBlock(MallocMetadata* Block);
-        MallocMetadata* splitBlock(MallocMetadata* block, size_t requestedSize);
+        void addBlock(MallocMetadata* block);
+        void removeBlock(MallocMetadata* block, bool forMerge);
+        MallocMetadata* splitBlock(MallocMetadata* block);
         MallocMetadata* getBuddy(MallocMetadata* block);
-        void mergeBuddyBlocks(MallocMetadata* block);
+        MallocMetadata* mergeBuddyBlocks(MallocMetadata* block);
+        void initialize(size_t sizeOfArray);
 
       
 };

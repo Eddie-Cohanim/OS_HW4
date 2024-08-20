@@ -10,7 +10,6 @@ class MallocMetadata {
         bool m_isFree;
         MallocMetadata* m_next;
         MallocMetadata* m_prev;
-        MallocMetadata* m_buddy;
     
     public:
         size_t getSize();
@@ -25,11 +24,8 @@ class MallocMetadata {
         MallocMetadata* getPrev();
         void setPrev(MallocMetadata* prev);
 
-        MallocMetadata* getBuddy();
-        void setBuddy(MallocMetadata* buddy);
-
-        int getOrder(size_t realBlockSize);
-
+        int getOrder(size_t realBlockSize);//should this be here? afterall the size in metadata is without the metadata
+        //also why have it here as a method if it works for any size an not the instance's specific size?
 
         MallocMetadata(size_t size, MallocMetadata* prev);
         ~MallocMetadata() = default;
