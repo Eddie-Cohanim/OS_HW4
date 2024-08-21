@@ -1,15 +1,18 @@
 #include <unistd.h> 
-#include <exception>
 
-#define MAX_SIZE = 100000000
+#define MAX_SIZE 100000000
 
 
 void* smalloc(size_t size){
-    if(size==0 || size > MAX_SIZE) {
+    if(size==0){ 
         return NULL;
     }
-    if(sbrk(size) == (void*)(-1)){
+    if(size > MAX_SIZE) {
         return NULL;
     }
-    return sbrk(0);
+    void* newAlloc = sbrk(size);
+    if(newAlloc == (void*)(-1)){
+        return NULL;
+    }
+    return newAlloc;
 } 
