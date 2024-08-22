@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <stdint.h>
-#include <iostream>
+//#include <iostream>
 
 #define MAX_SIZE 100000000
 #define MAX_ORDER 10
@@ -214,12 +214,9 @@ void MetaList::initialize(size_t sizeOfArray){
 
 //notice blocks size needs to be with the metadata included
 void MetaList::addSmallBlock(MallocMetadata* smallBlock){
-    //std::cout << "addSmallBlock has been entered" << std::endl;
     size_t blockSize = smallBlock->getSize();
     int order = getOrder(blockSize);
-    //std::cout << "this is the order of the block being added: " << order << std::endl;
     MallocMetadata* lastMetadata = getLastMetadata(m_list[order]);
-    //std::cout << "getLastMetadata has finished" << std::endl;
     if(lastMetadata == NULL){
         m_list[order] = smallBlock;
         smallBlock->setPrev(NULL);
@@ -237,7 +234,6 @@ void MetaList::addSmallBlock(MallocMetadata* smallBlock){
 }
 
 void addBigBlock(MallocMetadata* bigBlock){
-    //bigBlock->setSize(bigBlock->getSize());//?????????????????????????????????????????????
     bigBlock->setPrev(NULL);
     bigBlock->setFree(false);
     if(mapList == NULL)
@@ -256,12 +252,9 @@ void addBigBlock(MallocMetadata* bigBlock){
 }
 
 MallocMetadata* MetaList::removeBlock(int order){
-    //std::cout << "entered remove block and order is: " << order << std::endl;
     MallocMetadata* current = m_list[order];
     if(current != NULL){
-        //std::cout << "current isn't NULL" << std::endl;
         if(current->getFree() == true){ //should always be true but still :)
-            //std::cout << "current is free" << std::endl;
             m_list[order] = current->getNext();
             if(current->getNext() != NULL){
                 current->getNext()->setPrev(NULL);
@@ -269,20 +262,17 @@ MallocMetadata* MetaList::removeBlock(int order){
             current->setFree(false);
             return current;
         }
-        //std::cout << "current isn't free" << std::endl;
     }
     return NULL;
 }
 
 void MetaList::removeBlockForMerge(MallocMetadata* block){
-    //std::cout << "remove block merge was entered" << std::endl;
     int order = getOrder(block->getSize());
     MallocMetadata* current = m_list[order];
     while(current){
         if(current == block){
             if(block->getNext() == NULL && block->getPrev() == NULL){
                 m_list[order] = NULL;
-                //block->setFree(false);
             }
             if(block->getPrev() != NULL){
                 block->getPrev()->setNext(block->getNext());
@@ -290,12 +280,6 @@ void MetaList::removeBlockForMerge(MallocMetadata* block){
             if(block->getNext() != NULL){
                 block->getNext()->setPrev(block->getPrev());
             }
-            /*if(forMerge == false){
-                block->setFree(false);
-                block->setSize(0);//not sure? for this whole thing
-                block->setNext(NULL);
-                block->setPrev(NULL);
-            }*/
             break;
         }
         current = current->getNext();
@@ -304,27 +288,18 @@ void MetaList::removeBlockForMerge(MallocMetadata* block){
 }
 
 MallocMetadata* splitBlock(MallocMetadata* block){
-    //std::cout << "split block was entered ";
     size_t size = block->getSize();// + sizeof(MallocMetadata);
-    //std::cout << "and this is the size: " << size << std::endl;
     if(size < 128){
         return NULL;
     }
-    // while (remainingSize > requestedSize && block->getOrder(remainingSize) > 0) {
-    //     size_t remainingSize = remainingSize / 2;
-    //     if (remainingSize < requestedSize) {
-    //         break;
-    //     }
-    // }
+   
     MallocMetadata* buddy = (MallocMetadata*)((char*)(block) + (size/2));
     buddy->setSize((block->getSize())/2);
     metaDataList->addSmallBlock(buddy);
-    //std::cout << "small block was added" << std::endl;
     block->setSize(block->getSize()/2);
     block->setFree(true);
     block->setNext(NULL);
     block->setPrev(NULL);
-    //std::cout << "split block has finished" << std::endl;
     return block;
 }
 
@@ -334,15 +309,11 @@ MallocMetadata* MetaList::getBuddy(MallocMetadata* block){
 
 //not recursive!!!!!!! also check prior if max order
 MallocMetadata* MetaList::mergeBuddyBlocks(MallocMetadata* block){
-    //std::cout << "merge buddy blockes was entered" << std::endl;
     if(block->getSize() >= MAX_BLOCK_SIZE){
         return NULL;
     }
     MallocMetadata* buddy = getBuddy(block);
-    //std::cout << "this is buddy's size: " << buddy->getSize() << " and this is it's order: " << getOrder(buddy->getSize()) << std::endl;
-    //std::cout << "this is block's size: " << block->getSize() << " and this is it's order: " << getOrder(block->getSize()) << std::endl;
     if(getOrder(buddy->getSize()) == getOrder(block->getSize())){
-        //std::cout << "is buddy free? " << buddy->getFree() << std::endl;
         if(buddy->getFree()){
             if(block > buddy){//removing the one with the bigger
                 removeBlockForMerge(block);
@@ -359,13 +330,11 @@ MallocMetadata* MetaList::mergeBuddyBlocks(MallocMetadata* block){
                 block->setSize(block->getSize() * 2);
                 addSmallBlock(block);
                 metaDataList->changeAllocatedBlocks(-2);
-                //std::cout << "this is the current allocated blocks value: " << getAllocatedBlocks() << std::endl;
                 metaDataList->changeAllocatedBytes(-(block->getSize()));//might actually be bigger
                 return block;
             }
         }
     }
-    //std::cout << "merge has finished" << std::endl;
     return NULL;
 }
 
@@ -470,17 +439,13 @@ size_t _num_meta_data_bytes(){
 
 void* smalloc(size_t size){
     if(metaDataList == NULL){
-        //std::cout << "first smalloc if was entered" << std::endl;
         size_t sizeOfArray = sizeof(MallocMetadata*) * (MAX_ORDER + 1);
         metaDataList = (MetaList*)sbrk(sizeOfArray);
         if(metaDataList == (void*) -1){
             return NULL;
         }
-        //std::cout << "about to make array null" << std::endl;
         metaDataList->makeArrayNull();
-        //std::cout << "about to initialize array" << std::endl;
         metaDataList->initialize(sizeOfArray);
-        //std::cout << "first smalloc if was finished" << std::endl;
     }
     
     if(size == 0 || size > MAX_SIZE) {
@@ -488,33 +453,26 @@ void* smalloc(size_t size){
     }
 
     if(size + _size_meta_data() <= MAX_BLOCK_SIZE){
-        //std::cout << "size was smaller than MAX_BLOCK_SIZE" << std::endl;
         MallocMetadata* removed;
         MallocMetadata newBlock (size + _size_meta_data(), NULL);
         int order = getOrder((&newBlock)->getSize());
         for(int i = order; i <= MAX_ORDER; i++){
-            //std::cout << "first for was entered and the order is: " << order << std::endl;
             removed = metaDataList->removeBlock(i);
             if(removed == NULL){
-                //std::cout << "removed was NULL" << std::endl;
                 continue;
             }
             else{
                 if(i == order){
-                    //std::cout << "i equalled order" << std::endl;
                     return (void*)((char*)removed + _size_meta_data());
                 }
                 else{
-                    //std::cout << "second else was entered after smaller than MAX_BLOCK_SIZE" << std::endl;
                     MallocMetadata* toSplit = removed;
                     for(int j = 1; j <= i - order; j++){
                         toSplit = splitBlock(toSplit);
                         if(toSplit == NULL){
                             return NULL;//should'nt be possible, means we split to many times
                         }
-                        //metaDataList->addSmallBlock(toSplit);
                     }
-                    //std::cout << "smalloc has finished" << std::endl;
                     toSplit->setFree(false);
                     return (void*)((char*)toSplit + _size_meta_data());
                 }
@@ -523,19 +481,16 @@ void* smalloc(size_t size){
         return NULL;//there was no room
     }
     else{//size is bigger than MAX_BLOCK_SIZE
-        //std::cout << "size was bigger than MAX_BLOCK_SIZE" << std::endl;
         MallocMetadata* bigBlock = (MallocMetadata*)mmap(NULL, size + _size_meta_data(), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
         if(bigBlock == (void*) -1){
             //std::cout << "mmap returned null " << std::endl;
             return NULL;
         }
-        //std::cout << "mmap was successful " << std::endl;
         bigBlock->setSize(size + _size_meta_data());
         addBigBlock(bigBlock);
         //std::cout << "big block was added " << std::endl;
         return (void*)((size_t) bigBlock + _size_meta_data());
     }
-    //std::cout << "smalloc has finished" << std::endl;
 }
 
 void* scalloc(size_t num, size_t size){
@@ -554,20 +509,15 @@ void* scalloc(size_t num, size_t size){
 }
 
 void sfree(void* p){
-    //std::cout << "sfree was entered" << std::endl;
     if(p == NULL){
         return;
     }
 
     MallocMetadata* MetadataToRemove = (MallocMetadata*)((size_t)p - _size_meta_data());//////this doesnt work for big meta data
     if(MetadataToRemove == NULL){
-        //std::cout << "metadata is NULL in sfree" << std::endl;
     }
-    //std::cout << "sfree is about to get the size of metadata" << std::endl;
     size_t MetadataToRemoveSize = MetadataToRemove->getSize();
-    //std::cout << "first if is about to be check in sfree" << std::endl;
     if(MetadataToRemoveSize > MAX_BLOCK_SIZE){
-        //std::cout << "the size is bigger than MAX_BLOCK_SIZE " << std::endl;
         if(mapList == NULL){
             return;
         }
@@ -586,8 +536,7 @@ void sfree(void* p){
                 MetadataToRemove->getPrev()->setNext(NULL);
             }
             else{//emptying map list because both prev and next are NULL
-                //std::cout << "the list was emptied" << std::endl;
-                mapList == NULL;
+                mapList = NULL;
             }
         }
         MetadataToRemove->setFree(true);
@@ -598,31 +547,26 @@ void sfree(void* p){
     }
     else{ //MetadataToRemovesize <= MAX_BLOCK_SIZE
         if(MetadataToRemove->getFree() == true){
-            //std::cout << "it was free already" << std::endl;
             return;
         }
-        //std::cout << "we're freeing a small block" << std::endl;
         if(MetadataToRemoveSize == MAX_BLOCK_SIZE){
             metaDataList->addSmallBlock(MetadataToRemove);
-            //std::cout << "small block was added" << std::endl;
             return;
         }
         else{
-            //std::cout << "is ptr1 free?: " << MetadataToRemove->getFree() << std::endl;
             while(MetadataToRemoveSize < MAX_BLOCK_SIZE){
                 MallocMetadata* tmp = MetadataToRemove;
                 MetadataToRemove = metaDataList->mergeBuddyBlocks(MetadataToRemove);
                 if(MetadataToRemove == NULL){
                     metaDataList->addSmallBlock(tmp);
                     metaDataList->changeAllocatedBlocks(-1);
-                    metaDataList->changeAllocatedBytes(tmp->getSize());
+                    metaDataList->changeAllocatedBytes(-tmp->getSize());
                     break;
                 }
                 MetadataToRemoveSize = MetadataToRemove->getSize();
             }
         } 
     }
-    //std::cout << "end of sfree was somehow reached" << std::endl;
 } 
 
 void* srealloc(void* oldp, size_t size){
@@ -674,8 +618,9 @@ void* srealloc(void* oldp, size_t size){
     sfree(ptr4);
     std::cout <<"this is the num of allocated blocks after freeing 3: " << _num_allocated_blocks() << std::endl;
 
+    sfree(ptr1);
     sfree(ptr2);
-    std::cout <<"this is the num of allocated blocks after freeing 4: " << _num_allocated_blocks() << std::endl;
+    std::cout <<"this is the num of allocated blocks after freeing 5: " << _num_allocated_blocks() << std::endl;
 
 
 
